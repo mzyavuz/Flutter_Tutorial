@@ -1,6 +1,9 @@
 import 'package:fetching_data_from_the_internet_http/album.dart';
 import 'package:fetching_data_from_the_internet_http/repo.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import 'photo.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,19 +34,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  late Future<Album> futureAlbum;
 
-  @override
-  void initState() {
-    super.initState();
-    futureAlbum = fetchAlbum();
-  }
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,44 +42,41 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-            FutureBuilder<Album>(
-              future: futureAlbum,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Column(
-                    children: [
-                      Text(snapshot.data!.title),
-                      Text(snapshot.data!.id.toString()),
-                      Text(snapshot.data!.userId.toString()),
-                    ],
-                  );
-                } else if (snapshot.hasError) {
-                  return Text('${snapshot.error}');
-                }
+      body: FutureBuilder<List<Photo>>(
+        future: fetchPhotos(http.Client()),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text('An error has occurred!'),
+            );
+          } else if (snapshot.hasData) {
+            return PhotosList(photos: snapshot.data!);
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
+    );
+  }
+}
 
-                // By default, show a loading spinner.
-                return const CircularProgressIndicator();
-              },
-            )
-          ],
-        ),
+class PhotosList extends StatelessWidget {
+  const PhotosList({super.key, required this.photos});
+
+  final List<Photo> photos;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      itemCount: photos.length,
+      itemBuilder: (context, index) {
+        return Image.network(photos[index].thumbnailUrl);
+      },
     );
   }
 }

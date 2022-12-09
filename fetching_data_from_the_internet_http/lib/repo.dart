@@ -1,18 +1,23 @@
 import 'dart:convert';
-import 'package:fetching_data_from_the_internet_http/album.dart';
+import 'package:fetching_data_from_the_internet_http/photo.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-Future<Album> fetchAlbum() async {
-  final response = await http
-      .get(Uri.parse('https://jsonplaceholder.typicode.com/albums/2'));
+// A function that converts a response body into a List<Photo>.
+List<Photo> parsePhotos(String responseBody) {
+  final parsed = jsonDecode(responseBody).cast<Map<String, dynamic>>();
 
-  if (response.statusCode == 200) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    return Album.fromJson(jsonDecode(response.body));
-  } else {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed to load album');
-  }
+  return parsed.map<Photo>((json) => Photo.fromJson(json)).toList();
 }
+
+Future<List<Photo>> fetchPhotos(http.Client client) async {
+  final response = await client
+      .get(Uri.parse('https://jsonplaceholder.typicode.com/photos'));
+
+  // Use the compute function to run parsePhotos in a separate isolate.
+  //return parsePhotos(response.body); instead of this
+  //use this
+  return compute(parsePhotos, response.body);
+}
+
+//As an alternate solution, check out the *worker_manager* or *workmanager* packages for background processing.
