@@ -39,11 +39,6 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     futureAlbum = fetchAlbum();
   }
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,13 +50,6 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
             FutureBuilder<Album>(
               future: futureAlbum,
               builder: (context, snapshot) {
@@ -83,11 +71,6 @@ class _MyHomePageState extends State<MyHomePage> {
             )
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }
