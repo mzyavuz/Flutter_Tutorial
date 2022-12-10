@@ -31,45 +31,62 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  late Future<Album> futureAlbum;
+  final TextEditingController _controller = TextEditingController();
+  late Future<Album> _futureAlbum;
 
   @override
   void initState() {
     super.initState();
-    futureAlbum = fetchAlbum();
+    _futureAlbum = fetchAlbum();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
+    return MaterialApp(
+      title: 'Update Data Example',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            FutureBuilder<Album>(
-              future: futureAlbum,
-              builder: (context, snapshot) {
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Update Data Example'),
+        ),
+        body: Container(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(8.0),
+          child: FutureBuilder<Album>(
+            future: _futureAlbum,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
                 if (snapshot.hasData) {
                   return Column(
-                    children: [
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
                       Text(snapshot.data!.title),
-                      Text(snapshot.data!.id.toString()),
-                      Text(snapshot.data!.userId.toString()),
+                      TextField(
+                        controller: _controller,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter Title',
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _futureAlbum = updateAlbum(_controller.text);
+                          });
+                        },
+                        child: const Text('Update Data'),
+                      ),
                     ],
                   );
                 } else if (snapshot.hasError) {
                   return Text('${snapshot.error}');
                 }
+              }
 
-                // By default, show a loading spinner.
-                return const CircularProgressIndicator();
-              },
-            )
-          ],
+              return const CircularProgressIndicator();
+            },
+          ),
         ),
       ),
     );
